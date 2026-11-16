@@ -158,6 +158,22 @@ describe 'unquoted_string_in_case' do
         expect(problems).to have(0).problems
       end
     end
+
+    context 'case on a single line' do
+      let(:code) do
+        <<-EOS
+        case $value { 'a': { include foo } bar: { } default: { } }
+        EOS
+      end
+
+      it 'only detects a single problem' do
+        expect(problems).to have(1).problem
+      end
+
+      it 'creates a warning' do
+        expect(problems).to contain_warning(msg).on_line(1).in_column(44)
+      end
+    end
   end
 
   context 'with fix enabled' do

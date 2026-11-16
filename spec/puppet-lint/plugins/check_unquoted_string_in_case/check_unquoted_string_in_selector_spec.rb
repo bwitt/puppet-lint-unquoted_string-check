@@ -68,6 +68,22 @@ describe 'unquoted_string_in_selector' do
         expect(problems).to have(0).problems
       end
     end
+
+    context 'selector on a single line' do
+      let(:code) do
+        <<-EOS
+        $ensure = $enabled ? { yes => present, default => absent }
+        EOS
+      end
+
+      it 'only detects a single problem' do
+        expect(problems).to have(1).problem
+      end
+
+      it 'creates a warning' do
+        expect(problems).to contain_warning(msg).on_line(1).in_column(32)
+      end
+    end
   end
 
   context 'with fix enabled' do
@@ -183,6 +199,22 @@ describe 'unquoted_string_in_selector' do
 
       it 'does not detect any problems' do
         expect(problems).to have(0).problems
+      end
+    end
+
+    context 'selector on a single line' do
+      let(:code) do
+        <<-EOS
+        $ensure = $enabled ? { yes => present, default => absent }
+        EOS
+      end
+
+      it 'only quotes the case' do
+        expect(manifest).to eq(
+          <<-EOS,
+        $ensure = $enabled ? { 'yes' => present, default => absent }
+          EOS
+        )
       end
     end
   end

@@ -23,13 +23,13 @@ def type_indexes(type)
   type_indexes
 end
 
-def notify_tokens(type, sep_type, message)
+def notify_tokens(type, sep_type, stop_types, message)
   type_indexes(type).each do |kase|
     type_tokens = tokens[kase[:start]..kase[:end]]
     type_tokens.index do |r|
       if r.type == sep_type
         s = r.prev_token
-        while (s.type != :NEWLINE) && (s.type != :LBRACE)
+        until stop_types.include?(s.type)
           if s.type == :NAME || (s.type == :CLASSREF && !s.value.include?('::'))
             notify :warning, {
               message: message,
@@ -47,7 +47,7 @@ end
 
 PuppetLint.new_check(:unquoted_string_in_case) do
   def check
-    notify_tokens(:CASE, :COLON, 'unquoted string in case')
+    notify_tokens(:CASE, :COLON, %i[NEWLINE LBRACE RBRACE], 'unquoted string in case')
   end
 
   def fix(problem)
@@ -57,7 +57,7 @@ end
 
 PuppetLint.new_check(:unquoted_string_in_selector) do
   def check
-    notify_tokens(:QMARK, :FARROW, 'unquoted string in selector')
+    notify_tokens(:QMARK, :FARROW, %i[NEWLINE LBRACE COMMA], 'unquoted string in selector')
   end
 
   def fix(problem)
